@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title></title>
+<style type="text/css">
+	body{margin:0px;}
+	main{
+		position:relative; display:block; width:100%; height:100%; left:0px; top:0px; box-sizing:border-box; background:lightskyblue; font-size:16px; padding:10px 15px;
+	}
+	.unClickable { opacity : 0.3; }
+	
+	.settings{
+		display:block; width:100%; min-height:200px; height:auto;
+	}
+	.settings section{
+		display:block; width:100%; height:auto; box-sizing:border-box; padding:7px; margin:15px 0px; border:1px solid #000; box-shadow:0px 0px 12px #000;
+	}
+	section h3{
+		font-size:1.3em; font-weight:bold; display:block; text-align:center; margin:0px 7px; color:#4053b3;
+	}
+	
+	section .range{
+		display:flex; width:100%; height:50px; margin:3px 0px; border-left:2px solid #6040d3; padding:0 0 0 3px; box-sizing:border-box; border:1px solid #444;
+	}
+	.range > *{
+		flex-grow:1; max-width:50%; font-size:1.2em;
+	}
+	.range > div:first-of-type{
+		display:flex; flex-direction:column; justify-content:space-around; text-align:center;
+	}
+	.range > div:last-of-type{
+		background:white; display:flex; justify-content:space-between; font-size:1.3em;
+	}
+	.range > div:last-of-type *{
+		flex-grow:1; display:block; line-height:58px; text-align:center;
+	}
+	.range > div:last-of-type b:active{
+		background:#ccc; 
+	}
+
+	button{
+		display:block; margin:40px 0px; width:100%; border:none; color:#fff; font-size:1.4em;
+		background:linear-gradient(90deg, purple, #4053b3); outline:none;
+	}
+	button:active{
+		box-shadow:0px 0px 9px #0000ff;
+	}
+	button:active, button:hover{
+		outline:none;
+	}
+	
+	button:active+.results{
+		box-shadow:none;
+	}
+	
+	.results{
+		display:flex; flex-flow:column nowrap; width:100%; transition:all 0.5s ease; overflow:hidden; padding:0 2px 5px 2px; box-sizing:border-box; height:0px;
+	}
+	.results.show{
+		height:auto; min-height:40px; border:1px solid black; box-shadow:0px 0px 12px #000;
+	}
+	.results h3{
+		margin:5px 0; font-size:1.3em; text-align:center; color:#4053b3;
+	}
+	.results .sort{
+		display:flex; height:50px; width:200px; justify-content:space-between; box-sizing:border-box; padding:0px; margin:5px; border:1px solid #444; background:rgba(250,250,250,0.6);
+	}
+	.sort > *{
+		flex-grow:1; display:inline-block; font-size:1.2em; line-height:60px; text-align:center; width:100px;
+	}
+	.sort > div{
+		background:inherit;
+	}
+	.sort > div > *{
+		position:relative; width:100px;top:0px; left:0px; display:block; margin:0px; padding:0px; list-style-type:none; transition:all 0.2s ease;
+	}
+	.sort > div span{
+		z-index:1; height:50px;
+	}
+	.sort > div.showOptions span{
+		height:0px;
+	}
+	.sort > div ul{
+		z-index:2; height:200px; background:inherit; display:flex; flex-flow:column nowrap; justify-content:space-between; overflow:hidden;
+	}
+	.sort > div:not(.showOptions) ul{
+		height:0px;
+	}
+	.sort > div ul li{
+		height:48px; background:#fff;
+	}
+	.sort > div ul li:active{
+		background:#ccc;
+	}
+	
+	.results .tHead{
+		display:flex; height:30px; max-width:400px; width:100%; justify-content:flex-end; border-bottom:2px solid #444;  box-sizing:border-box; overflow:hidden; margin:0px auto; margin:0px;
+	}
+	.tHead span{
+		height:100%; text-align:center; width:60px; border:1px solid #444; border-color:#444 transparent transparent #444; line-height:34px; box-sizing:border-box;
+	}
+	.tHead span:last-child{
+		border-right:1px solid #444; width:61px;
+	}
+	.tHead span:nth-child(even){
+		background:rgba(250,250,250,0.6);
+	}
+	
+	.results .tBody{
+		display:flex; height:50px; max-width:400px; width:100%; justify-content:flex-end; border:1px solid #444; border-top:none; box-sizing:border-box; overflow:hidden; margin:0px auto; margin:0px;
+	}
+	.tBody span{
+		height:100%; text-align:center; width:60px; border:1px solid #444; border-color:transparent transparent transparent #444; line-height:58px; box-sizing:border-box;
+	}
+	.tBody span:first-child{
+		flex-grow:1; display:flex; justify-content:space-around;
+	}
+	.tBody span:nth-child(odd){
+		background:rgba(250,250,250,0.6);
+	}
+	.tBody span:first-child{
+		border:none;
+	}
+	.tBody span b{
+		display:inline-block; position:relative; left:0px; top:0px; margin:auto 2px; font-size:0.8em;
+	}
+	.tBody span ins{
+	 margin:auto; text-decoration:none;
+	}
+	
+	aside{
+		position:fixed; left:0px; top:-200px; width:100%; height:auto; min-height:20px; display:flex; flex-flow:column nowrap; overflow:visible; transition:all 0.7s ease-in-out;
+	}
+	aside.show{ top:10px; }
+	aside span{
+		margin:auto; padding:5px 5px; max-width:260px; border:1px solid #4053b3; display:block; text-align:center; box-shadow:0px 0px 5px #aaa;
+		background:#4053b3; color:#fff;
+	}
+</style>
+</head>
+<body>
+
+<main>
+	<aside><span>{{alert}}</span></aside>	
+
+	<div class="settings">
+		<section class="individualCount">
+			<h3>Individuals</h3>
+			<v-range vname="individuals" val="100" min="50" max="500" step="10" v-on:update="update">Persons In Simulation</v-range>
+		</section>
+		
+		<section css="weights">
+			<h3>Skill</h3>
+			<v-range vname="minSkill" val="1" min="0" max="5" step="1" v-on:update="update">Minimum Skill</v-range>
+			<v-range vname="maxSkill" val="10" min="5" max="30" step="1" v-on:update="update">Maximum Skill</v-range>
+		</section>
+		
+		<section class="individualCount">
+			<h3>Wealth</h3>
+			<v-range vname="wealth" val="100" min="10" max="500" step="10" v-on:update="update">Initial Wealth Per Person</v-range>
+		</section>
+		
+		<section class="individualCount">
+			<h3>Iterations</h3>
+			<v-range vname="iterations" val="50" min="30" max="200" step="10" v-on:update="update">Lifespan Per Person</v-range>
+		</section>
+	</div>
+	
+	<button @click="run()">Go</button>
+	
+	<div class="results" :class="showResults? 'show' : '' ">
+		<h3>Results</h3>
+		<div class="sort">
+			<span>Sort By</span>
+			<div clas="showOptions" @touchstart.stop="">
+				<span @click.stop="toggleOptions($event)">{{sortOption}}</span>
+				<ul @click.stop="sort($event)">
+					<li>Index</li>
+					<li>Wealth</li>
+					<li>Luck</li>
+					<li>Skill</li>
+				</ul>
+			</div>
+		</div>
+		
+		<div class="tHead">
+			<span>Wealth</span><span>Luck</span><span>Skill</span>
+		</div>
+		<div class="tBody" v-for="(ind, i) in individuals">
+			<span><b>{{i+1}}</b><ins>{{ind.index+1}}</ins></span>
+			<span>{{normalize(ind.wealth)}}</span>
+			<span>{{ind.luck}}</span>
+			<span>{{ind.skill}}</span>
+		</div>
+	</div>
+</main>
+
+</body>
+<script type="text/javascript" src="./libs/PrefixFree/fullPrefixFree.js"></script>
+<script type="text/javascript" src="./libs/Vue/vue.min.js"></script>
+<script type="text/javascript">
+
+var range = {
+	data : function(){ return{
+		changeCount : 0
+	}; },
+	methods : {
+		changeVal : function(increment){
+			var val = Number(this.val), step = Number(this.step);
+			var newVal = ((increment)? (val + step) : (val - step));
+			if(newVal < this.min || newVal > this.max){ return; }
+			this.changeCount++;
+			this.val = newVal;
+			this.$emit("update", this.vname, this.val);
+		}
+	},
+	watch : {
+		val : function(a,b){
+				if(this.changeCount ==0){
+					this.changeCount++;
+					this.val = b;
+				}else{
+					this.changeCount = 0;
+				}
+		}
+	},
+	mounted : function(){
+		this.$emit("update", this.vname, this.val);
+	},
+	props : {
+		"vname" : String,
+		"val": Number,
+		"min" : Number,
+		"max" : Number,
+		"step" : Number
+	},
+	template : '<div class="range">\
+	<div><slot></slot></div>\
+	<div><b @click="changeVal(false)" :class="val <= Number(min)? \'unClickable\' : \'\'"><</b><span>{{val}}</span><b @click="changeVal(true)" :class="val >= max? \'unClickable\' : \'\'">></b></div>\
+	</div>'
+}
+
+new Vue({
+	el : "main",
+	components : {
+		"v-range" : range
+	},
+	data : {
+		individuals : [],
+		settings : {},
+		sortOption : "Index",
+		showResults : false,
+		alert : "",
+		documentClickFunc : function(){}
+	},
+	watch : {
+		"alert" : function(){
+			var el = document.getElementsByTagName("aside")[0];
+			el.classList.add("show");
+			var self = this;
+			this.documentClickFunc = function(){
+				el.classList.remove("show");
+				document.removeEventListener("touchstart", self.documentClickFunc);
+			};
+			el.addEventListener("click", this.documentClickFunc);
+			document.addEventListener("touchstart", this.documentClickFunc);
+		}
+	},
+	methods : {
+	
+		update : function(x, y){
+			this.$set(this.$data.settings, x, y);
+		},
+		
+		run : function(){
+			this.$data.sortOption = "Index";
+			var settings = this.$data.settings, randSkill = 0;
+			settings.maxSkill = Number(settings.maxSkill), settings.minSkill = Number(settings.minSkill);
+			//create individuals
+			for(var x=0; x<settings.individuals; x++){
+				randSkill = Math.floor(Math.random() *((settings.maxSkill+1)-settings.minSkill) +settings.minSkill);
+				this.$set(this.individuals, x, {index : x, skill : randSkill, wealth : this.settings.wealth, luck : 0});
+			}
+			
+			//simulate in 40 iterations
+			var each = (1/((settings.maxSkill-settings.minSkill)+1));
+			var x = [0,0];
+			for(var i=0; i<this.settings.iterations; i++){
+				for(var ind in this.individuals){
+					var relativeSkill = (((this.individuals[ind].skill-settings.minSkill)+1)*1);
+					if(Math.random() >= 0.5){
+						this.$set(this.individuals[ind], "luck", this.individuals[ind].luck+1);
+						x[0]++;
+						this.$set(this.individuals[ind], "wealth", Math.ceil(this.individuals[ind].wealth + (this.individuals[ind].wealth * (each*relativeSkill))));
+					}else{
+						this.$set(this.individuals[ind], "luck", this.individuals[ind].luck-1);
+						 x[1]++;
+						this.$set(this.individuals[ind], "wealth", Math.round(this.individuals[ind].wealth / 2));
+					}
+				}
+			}
+			this.showResults = true;
+			this.$nextTick(function(){
+				this.alert = "Simulation Complete.";
+			});
+		},
+		
+		sort : function(e){
+			e.target.parentElement.parentElement.classList.remove("showOptions");
+			if(e.target.innerText != this.sortOption){
+			var sortOption = this.sortOption = e.target.innerText;
+			sortOption = sortOption.toLowerCase();
+			document.removeEventListener("touchstart", this.documentClickFunc);
+
+			var x = this.individuals.slice();
+			sortList(x, "", "", function(a, b){
+				var a1 = a[sortOption], b1 = b[sortOption];
+				var checksOut = (sortOption == "index")? (a1<b1) :(a1>b1);
+				if(a1 == b1){
+					return (a.wealth>b.wealth);
+				}else{return checksOut;}
+			});
+			for(var i in x[0]){
+				this.$set(this.individuals, i, x[0][i]);
+			}
+			}
+			
+			var total = 0, top = 0;
+			for(var ind in this.individuals){
+				top+=(Number(ind)<10)? this.individuals[ind].wealth : 0;
+				total+=(this.individuals[ind].wealth);
+			}
+			var percent = Number((top/total)*100).toFixed(2);
+			var total_norm = this.normalize(total);
+			if(sortOption == "skill"){
+				this.alert = "Top 10 most skilled people have "+percent+"% of the total wealth. ("+total_norm+")";
+			}else if(sortOption=="luck"){
+				this.alert = "Top 10 luckiest people have "+percent+"% of the total wealth. ("+total_norm+")";
+			}else if(sortOption == "wealth"){
+				this.alert = "Top 10 richest people have "+percent+"% of the total wealth. ("+total_norm+")";
+			}
+		},
+		
+		toggleOptions : function(e){
+			e.target.parentElement.classList.add("showOptions");
+			var self = this;
+			this.documentClickFunc = function(){
+				e.target.parentElement.classList.remove("showOptions");
+				document.removeEventListener("touchstart", self.documentClickFunc);
+			};
+			document.addEventListener("touchstart", this.documentClickFunc);
+		},
+		
+		normalize : function(num){
+			var num_ = String(num), stages = ["k","m","b","t","qd","qt","st"];
+			if(num_.indexOf(".") > -1){
+				num_ = String(Math.round(num));
+			}
+			if(num < 1000){return num_;}
+			for(var i=3; i <= 18; i+=3){
+				var len = num_.length;
+				if(len >(i+3)){continue;}
+				var mod = (len % i);
+				var f = num_.substr(0, mod);
+				f = (f)? f : 0;
+				var rem = num_.substr(mod, 2);
+				var stageInt = (f)? ((i/3)-1) : (i/3) ;
+				var stage = stages[stageInt];
+				return (f+"."+rem+""+stage);
+			}
+		}
+	}
+});
+
+
+function sortList(lst, sortItem, order, comparisonFunc){
+	var isAscending = (order != "ascending")? false : true;
+	function sortItemVal(i){
+		if(i === undefined){
+			return i 
+		}
+		var ans = ( (sortItem === undefined)? i : i[sortItem] );
+		return (typeof ans == "string")? ans.toLowerCase() : ans ;
+	}//to get the appropriate value if list contains an object
+
+	var whichIsGreater = function(a,b){
+		var bVal = sortItemVal(b), aVal = sortItemVal(a);
+		return ((isAscending)? (aVal < bVal) : (bVal < aVal));
+	}
+	if(typeof comparisonFunc == "function"){
+		whichIsGreater = comparisonFunc;
+	}//compares values before sorting in each iteration
+
+	var lst = (function(){
+		var len = lst.length;
+		for(var i = 0; i<len; i++){
+			lst.push([lst[i]]);
+		}
+		lst.splice(0, len)
+		return lst;//dividing the list into seperate mini-lists
+	})();
+
+	function merge(a,b){
+		var ans = [], len = (a.length+b.length);
+		while(ans.length < len){
+			if(a[0] === undefined){
+				ans.push(b[0]);
+				b.splice(0,1);
+			}else if(b[0] === undefined){
+				ans.push(a[0]);
+				a.splice(0,1);
+			}else{
+				if(whichIsGreater(a[0], b[0])){
+					ans.push(a[0]);
+					a.splice(0,1);
+				}else{
+					ans.push(b[0]);
+					b.splice(0,1);
+				}
+			}
+		}
+		return ans;
+	}//turning two lists to one semi-sorted list
+
+	var len = lst.length;
+	while(lst.length > 1){
+		for(var i = 0; i<len;){
+			if(lst[i+1] === undefined){			break;		}
+			var m = merge(lst[i], lst[i+1]);
+			lst.splice(i, 2, m);
+			i++;
+		}
+	}//looping with merge() until all mini-lists are joined and fully sorted
+	lst = lst[0];
+	return lst;
+}//uses Merge Sort method
+
+
+</script>
+</html>
